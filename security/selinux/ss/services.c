@@ -1655,7 +1655,7 @@ static inline int compute_sid_handle_invalid_context(
 	struct context *newcontext)
 {
 #ifdef CONFIG_AUDIT
-	struct policydb *policydb = &state->ss->policydb;
+        struct policydb *policydb = &state->ss->policydb;
 	char *s = NULL, *t = NULL, *n = NULL;
 	u32 slen, tlen, nlen;
 
@@ -2133,6 +2133,9 @@ bad:
 	newc->hash = context_compute_hash(s);
 	pr_info("SELinux:  Context %s became invalid (unmapped).\n",
 		newc->str);
+#else
+	context_destroy(newc);
+#endif
 	return 0;
 #else
 	return 0;
