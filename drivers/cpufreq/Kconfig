@@ -230,6 +230,17 @@ config CPU_FREQ_GOV_SCHEDUTIL
 
 	  If in doubt, say N.
 
+config CPU_FREQ_GOV_REFLEX
+	tristate "'reflex' cpufreq policy governor"
+	default m
+	depends on CPU_FREQ && SMP
+	select CPU_FREQ_GOV_ATTR_SET
+	select IRQ_WORK
+	help
+	  Reflex CPUFreq Governor v0.2.2 (GKI 5.10 port).
+	  Combines interactive hispeed ramp-up with PELT tracking.
+	  Module: cpufreq_reflex. If in doubt, say M.
+	  
 config CPU_FREQ_GOV_SCHEDHORIZON
 	bool "'schedhorizon' cpufreq policy governor"
 	depends on CPU_FREQ && SMP
