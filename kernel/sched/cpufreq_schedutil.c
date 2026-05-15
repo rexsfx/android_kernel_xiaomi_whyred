@@ -1014,7 +1014,7 @@ void rfx_get_util_gki510(int cpu, unsigned long boost,
 	/* 25% DVFS headroom — equivalent to map_util_perf() in newer kernels */
 	util = util + (util >> 2);
 
-	max_cap = (unsigned long)arch_scale_cpu_capacity(cpu);
+	max_cap = (unsigned long)arch_scale_cpu_capacity(NULL, cpu);
 	*out_util = min(util, max_cap);
 }
 EXPORT_SYMBOL_GPL(rfx_get_util_gki510);
