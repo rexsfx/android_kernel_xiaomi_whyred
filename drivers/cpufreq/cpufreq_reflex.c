@@ -370,7 +370,7 @@ static void rfx_update_single_freq(struct update_util_data *hook, u64 time,
 	unsigned long max_cap, boost, effective_util;
 	unsigned int next_f;
 
-	max_cap = arch_scale_cpu_capacity(rfx_c->cpu);
+	max_cap = arch_scale_cpu_capacity(NULL, rfx_c->cpu);
 	rfx_iowait_boost(rfx_c, time, flags);
 	rfx_c->last_update = time;
 	rfx_ignore_dl_rate_limit(rfx_c);
@@ -416,7 +416,7 @@ static unsigned int rfx_next_freq_shared(struct rfx_cpu *rfx_c, u64 time)
 	unsigned long util = 0, max_cap;
 	unsigned int j;
 
-	max_cap = arch_scale_cpu_capacity(rfx_c->cpu);
+	max_cap = arch_scale_cpu_capacity(NULL, rfx_c->cpu);
 
 	for_each_cpu(j, policy->cpus) {
 		struct rfx_cpu *j_rfx_c = &per_cpu(rfx_cpu, j);
