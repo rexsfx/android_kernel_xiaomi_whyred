@@ -160,7 +160,7 @@ static bool rfx_update_next_freq(struct rfx_policy *rfx_pol, u64 time,
 	if (rfx_pol->need_freq_update) {
 		rfx_pol->need_freq_update = false;
 		if (rfx_pol->next_freq == next_freq &&
-		    !rfx_driver_test_flags(CPUFREQ_NEED_UPDATE_LIMITS))
+		    false)
 			return false;
 	} else if (rfx_pol->next_freq == next_freq) {
 		return false;
@@ -557,7 +557,7 @@ static void rfx_tunables_free(struct kobject *kobj)
  * struct kobj_type* (not const). Using const causes -Wincompatible-pointer-types.
  */
 static struct kobj_type rfx_tunables_ktype = {
-	.default_groups = rfx_groups,
+	.default_attrs = rfx_attrs,
 	.sysfs_ops      = &governor_sysfs_ops,
 	.release        = rfx_tunables_free,
 };
@@ -789,7 +789,7 @@ static void rfx_limits(struct cpufreq_policy *policy)
 static struct cpufreq_governor reflex_gov = {
 	.name   = "reflex",
 	.owner  = THIS_MODULE,
-	.flags  = CPUFREQ_GOV_DYNAMIC_SWITCHING,
+	.flags  = 0,
 	.init   = rfx_init,
 	.exit   = rfx_exit,
 	.start  = rfx_start,
