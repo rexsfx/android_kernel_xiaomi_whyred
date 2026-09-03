@@ -579,8 +579,12 @@ static u64 update_triggers(struct psi_group *group, u64 now)
 		trace_psi_event(t->state, t->threshold);
 
 		/* Generate an event */
-		if (cmpxchg(&t->event, 0, 1) == 0)
-			wake_up_interruptible(&t->event_wait);
+		if (cmpxchg(&t->event, 0, 1) == 0) {
+			if (t->ext_wq)
+				wake_up_interruptible(t->ext_wq);
+			else
+				wake_up_interruptible(&t->event_wait);
+		}
 		t->last_event_time = now;
 	}
 
@@ -1091,6 +1095,7 @@ struct psi_trigger *psi_trigger_create(struct psi_group *group,
 	t->event = 0;
 	t->last_event_time = 0;
 	init_waitqueue_head(&t->event_wait);
+	t->ext_wq = NULL;
 
 	mutex_lock(&group->trigger_lock);
 
