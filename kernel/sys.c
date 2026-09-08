@@ -689,18 +689,8 @@ error:
 	return retval;
 }
 
-#ifdef CONFIG_KSU
-extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
-#endif
-
 SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
 {
-#ifdef CONFIG_KSU_SUSFS
-	if (ksu_handle_setresuid(ruid, euid, suid)) {
-		pr_info("Something wrong with ksu_handle_setresuid()\\n");
-	}
-#endif
-
 	return __sys_setresuid(ruid, euid, suid);
 }
 
@@ -1291,30 +1281,22 @@ static int override_version(struct new_utsname __user *name)
 #endif
 }
 
-#ifdef CONFIG_KSU_SUSFS_SPOOF_UNAME
-extern struct static_key_false susfs_is_uname_spoof_buffer_set;
-extern void susfs_spoof_uname(struct new_utsname* tmp);
-#endif
 SYSCALL_DEFINE1(newuname, struct new_utsname __user *, name)
 {
 	struct new_utsname tmp;
 
 	down_read(&uts_sem);
 	memcpy(&tmp, utsname(), sizeof(tmp));
-#ifdef CONFIG_KSU_SUSFS_SPOOF_UNAME
-	if (static_branch_likely(&susfs_is_uname_spoof_buffer_set))
-		susfs_spoof_uname(&tmp);
-#endif
-	if (current_uid().val == 0 &&
-	    (!strncmp(current->comm, "bpfloader", 9) ||
-	     !strncmp(current->comm, "netbpfload", 10) ||
-	     !strncmp(current->comm, "netd", 4))) {
-		strcpy(tmp.release, "5.10.260");
-	}
 	up_read(&uts_sem);
 	if (copy_to_user(name, &tmp, sizeof(tmp)))
 		return -EFAULT;
+
+	override_custom_release(name->release, sizeof(name->release));
+	if (override_release(name->release, sizeof(name->release)))
+		return -EFAULT;
 	if (override_architecture(name))
+		return -EFAULT;
+	if (override_version(name))
 		return -EFAULT;
 	return 0;
 }
