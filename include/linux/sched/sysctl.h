@@ -122,6 +122,9 @@ extern int sysctl_sched_rt_runtime;
 #ifdef CONFIG_UCLAMP_TASK
 extern unsigned int sysctl_sched_uclamp_util_min;
 extern unsigned int sysctl_sched_uclamp_util_max;
+extern int sysctl_sched_boost_src;
+extern int sysctl_sched_boost_src_min;
+extern int sysctl_sched_boost_src_max;
 #endif
 
 #ifdef CONFIG_CFS_BANDWIDTH

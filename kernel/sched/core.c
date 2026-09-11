@@ -6,6 +6,7 @@
  *  Copyright (C) 1991-2002  Linus Torvalds
  */
 #include "sched.h"
+#include <linux/sched/boost_src.h>
 
 #include <linux/nospec.h>
 
@@ -774,6 +775,10 @@ unsigned int sysctl_sched_uclamp_util_min = 0;
 
 /* Max allowed maximum utilization */
 unsigned int sysctl_sched_uclamp_util_max = SCHED_CAPACITY_SCALE;
+int sysctl_sched_boost_src = SCHED_BOOST_HYBRID;
+int sysctl_sched_boost_src_min = SCHED_BOOST_STUNE;
+int sysctl_sched_boost_src_max = SCHED_BOOST_HYBRID;
+
 
 /* All clamps are required to be less or equal than these values */
 static struct uclamp_se uclamp_default[UCLAMP_CNT];
@@ -1309,28 +1314,38 @@ unsigned int uclamp_task(struct task_struct *p)
 
 	util = task_util_est(p);
 #ifdef CONFIG_SCHED_TUNE
-	util += schedtune_task_margin(p);
+	if (sched_boost_stune())
+		util += schedtune_task_margin(p);
 #endif
-	util = max(util, uclamp_eff_value(p, UCLAMP_MIN));
-	util = min(util, uclamp_eff_value(p, UCLAMP_MAX));
+	if (sched_boost_uclamp()) {
+		util = max(util, (unsigned long)uclamp_eff_value(p, UCLAMP_MIN));
+		util = min(util, (unsigned long)uclamp_eff_value(p, UCLAMP_MAX));
+	}
+
 	return util;
 }
+
 
 bool uclamp_boosted(struct task_struct *p)
 {
 #ifdef CONFIG_SCHED_TUNE
-	if (schedtune_task_boost(p) > 0)
+	if (sched_boost_stune() && schedtune_task_boost(p) > 0)
 		return true;
 #endif
-	return uclamp_eff_value(p, UCLAMP_MIN) > 0;
+	if (sched_boost_uclamp())
+		return uclamp_eff_value(p, UCLAMP_MIN) > 0;
+	return false;
 }
+
 
 bool uclamp_latency_sensitive(struct task_struct *p)
 {
 #ifdef CONFIG_SCHED_TUNE
-	if (schedtune_prefer_idle(p) != 0)
+	if (sched_boost_stune() && schedtune_prefer_idle(p) != 0)
 		return true;
 #endif
+	if (!sched_boost_uclamp())
+		return false;
 #ifdef CONFIG_UCLAMP_TASK_GROUP
 	struct cgroup_subsys_state *css = task_css(p, cpu_cgrp_id);
 	struct task_group *tg;

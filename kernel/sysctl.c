@@ -830,6 +830,15 @@ static struct ctl_table kern_table[] = {
 		.mode		= 0644,
 		.proc_handler	= sysctl_sched_uclamp_handler,
 	},
+		{
+			.procname	= "sched_boost_src",
+			.data		= &sysctl_sched_boost_src,
+			.maxlen		= sizeof(int),
+			.mode		= 0644,
+			.proc_handler	= proc_dointvec_minmax,
+			.extra1		= &sysctl_sched_boost_src_min,
+			.extra2		= &sysctl_sched_boost_src_max,
+		},
 #endif
 #ifdef CONFIG_SCHED_AUTOGROUP
 	{

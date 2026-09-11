@@ -21,6 +21,7 @@
  *  Copyright (C) 2007 Red Hat, Inc., Peter Zijlstra
  */
 #include "sched.h"
+#include <linux/sched/boost_src.h>
 
 #include <trace/events/sched.h>
 
@@ -3936,13 +3937,18 @@ unsigned long task_util_est(struct task_struct *p)
 static inline unsigned long uclamp_task_util(struct task_struct *p)
 {
 	unsigned long util = task_util_est(p);
+
 #ifdef CONFIG_SCHED_TUNE
-	util += schedtune_task_margin(p);
+	if (sched_boost_stune())
+		util += schedtune_task_margin(p);
 #endif
-	return clamp(util,
-		     uclamp_eff_value(p, UCLAMP_MIN),
-		     uclamp_eff_value(p, UCLAMP_MAX));
+	if (sched_boost_uclamp())
+		return clamp(util,
+			(unsigned long)uclamp_eff_value(p, UCLAMP_MIN),
+			(unsigned long)uclamp_eff_value(p, UCLAMP_MAX));
+	return util;
 }
+
 #else
 static inline unsigned long uclamp_task_util(struct task_struct *p)
 {
