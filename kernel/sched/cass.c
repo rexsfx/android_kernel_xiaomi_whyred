@@ -34,14 +34,16 @@ static __always_inline unsigned long cass_cap_orig(int cpu)
 
 static __always_inline unsigned long cass_thermal_load(struct rq *rq)
 {
-#ifdef thermal_load_avg
-	return thermal_load_avg(rq);
-#elif defined(arch_scale_thermal_pressure)
-	return arch_scale_thermal_pressure(cpu_of(rq));
-#else
-	return 0;
-#endif
+	int cpu = cpu_of(rq);
+	unsigned long orig = cass_cap_orig(cpu);
+	unsigned long scale = arch_scale_max_freq_capacity(NULL, cpu);
+	unsigned long capped = orig * scale / SCHED_CAPACITY_SCALE;
+
+	if (capped >= orig)
+		return 0;
+	return orig - capped;
 }
+
 
 #ifdef CONFIG_UCLAMP_TASK
 static __always_inline unsigned long cass_uclamp_min(struct task_struct *p)
