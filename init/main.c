@@ -83,6 +83,8 @@
 #include <linux/sched/clock.h>
 #include <linux/sched/task.h>
 #include <linux/sched/task_stack.h>
+#include <linux/sched/sysctl.h>
+#include <linux/sched/boost_src.h>
 #include <linux/context_tracking.h>
 #include <linux/random.h>
 #include <linux/list.h>
@@ -254,6 +256,35 @@ static int __init set_zram_resize(char *val)
     return 0;
 }
 __setup("zram.resize=", set_zram_resize);
+
+#ifdef CONFIG_UCLAMP_TASK
+static int __init set_sched_boost_src(char *val)
+{
+	unsigned int option;
+
+	get_option(&val, &option);
+	switch (option) {
+	case 1:
+		sysctl_sched_boost_src = SCHED_BOOST_STUNE;
+		pr_info("kernel: sched boost source is stune\n");
+		break;
+	case 2:
+		sysctl_sched_boost_src = SCHED_BOOST_UCLAMP;
+		pr_info("kernel: sched boost source is uclamp\n");
+		break;
+	case 3:
+		sysctl_sched_boost_src = SCHED_BOOST_HYBRID;
+		pr_info("kernel: sched boost source is hybrid\n");
+		break;
+	default:
+		pr_err("Unexpected error in set_sched_boost_src\n");
+		return -EINVAL;
+	}
+	return 0;
+}
+__setup("sched.boost_src=", set_sched_boost_src);
+#endif
+
 /*
  * Used to generate warnings if static_key manipulation functions are used
  * before jump_label_init is called.
