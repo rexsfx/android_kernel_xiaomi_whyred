@@ -238,7 +238,7 @@ static inline u32 task_sid(const struct task_struct *task)
 	return sid;
 }
 
-static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dentry);
+int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dentry);
 
 /*
  * Try reloading inode security labels that have been marked as invalid.  The
@@ -1330,7 +1330,7 @@ out:
 }
 
 /* The inode's security attributes must be initialized before first use. */
-static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dentry)
+int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dentry)
 {
 	struct superblock_security_struct *sbsec = NULL;
 	struct inode_security_struct *isec = selinux_inode(inode);
