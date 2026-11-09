@@ -60,6 +60,8 @@ static inline void *susfs_kvmalloc(size_t size, gfp_t flags)
 DEFINE_STATIC_KEY_TRUE(susfs_is_log_enabled);
 #define SUSFS_LOGI(fmt, ...) if (static_branch_likely(&susfs_is_log_enabled)) pr_info("susfs:[%u][%d][%s] " fmt, current_uid().val, current->pid, __func__, ##__VA_ARGS__)
 #define SUSFS_LOGE(fmt, ...) if (static_branch_likely(&susfs_is_log_enabled)) pr_err("susfs:[%u][%d][%s]" fmt, current_uid().val, current->pid, __func__, ##__VA_ARGS__)
+#define SUSFS_LOGI_RL(fmt, ...) if (static_branch_likely(&susfs_is_log_enabled)) pr_info_ratelimited("susfs:[%u][%d][%s] " fmt, current_uid().val, current->pid, __func__, ##__VA_ARGS__)
+#define SUSFS_LOGE_RL(fmt, ...) if (static_branch_likely(&susfs_is_log_enabled)) pr_err_ratelimited("susfs:[%u][%d][%s]" fmt, current_uid().val, current->pid, __func__, ##__VA_ARGS__)
 #else
 #define SUSFS_LOGI(fmt, ...) 
 #define SUSFS_LOGE(fmt, ...) 
@@ -92,7 +94,7 @@ int susfs_add_sus_type(const char *secctx, u32 type_value) {
 	}
 
 	hash_add_rcu(SUS_TYPE_HLIST, &new_entry->node, type_value);
-	SUSFS_LOGI("secctx '%s', type '%u', has been added to SUS_TYPE_HLIST\n",
+	SUSFS_LOGI_RL("secctx '%s', type '%u', has been added to SUS_TYPE_HLIST\n",
 					secctx, type_value);
 unlock:
 	mutex_unlock(&susfs_mutex_lock_sus_type);
@@ -169,7 +171,7 @@ int susfs_add_sus_avd_allowed_by_type(u32 s_type, u32 t_type, u32 c_type, u32 or
 
 
 	hash_add_rcu(SUS_AVD_ALLOWED_HLIST, &entry->node, key);
-	SUSFS_LOGI("av_rule '%u %u %u %u' has been added to SUS_AVD_ALLOWED_HLIST\n",
+	SUSFS_LOGI_RL("av_rule '%u %u %u %u' has been added to SUS_AVD_ALLOWED_HLIST\n",
 				s_type, t_type, c_type, orig_avd_allowed);
 unlock:
 	mutex_unlock(&susfs_mutex_lock_sus_avd_allowed_hlist);
