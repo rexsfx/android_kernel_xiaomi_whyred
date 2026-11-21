@@ -1,4 +1,4 @@
-name: Build Kernel 4.19 SDM660
+name: Kernel Builder
 
 on:
   workflow_dispatch:
@@ -168,15 +168,14 @@ jobs:
       # ------------------------------------------------------------------
       # 8. BUILD KERNEL (dengan timer)
       # ------------------------------------------------------------------
-      - name: Setup xxKernelSU 
+      - name: Setup BakaSU
         run: |
           cd "$KERNEL_DIR"
-          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s sync-up
-          
+          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash
           curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -s master
           
           echo "CONFIG_NOMOUNT=y" >> $KERNEL_DIR/arch/arm64/configs/vendor/whyred-perf_defconfig
-
+          
           
       - name: Build kernel
         id: build
@@ -320,4 +319,5 @@ jobs:
             echo "| Waktu kompilasi | **${{ steps.build.outputs.duration_min }} menit ${{ steps.build.outputs.duration_sec }} detik** |"
             echo "| Status | ${{ job.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
           
