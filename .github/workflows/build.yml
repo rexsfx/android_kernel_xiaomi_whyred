@@ -1,4 +1,4 @@
-name: Kernel Builder
+name: Build Kernel 4.19 SDM660
 
 on:
   workflow_dispatch:
@@ -27,10 +27,10 @@ on:
 
 env:
   KERNEL_DIR: ${{ github.workspace }}/kernel
-  TC_DIR: ${{ github.workspace }}/toolchain/aosp-clang
+  TC_DIR: ${{ github.workspace }}/toolchain/zyc-clang
   OUT_DIR: ${{ github.workspace }}/kernel/out
-  AOSP_CLANG_TAG: r547379
-  AOSP_CLANG_URL: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86
+  ZYC_CLANG_TAG: 14.0.6-20261022-release
+  ZYC_CLANG_URL: https://github.com/ZyCromerZ/Clang/releases/download/14.0.6-20261022-release/Clang-14.0.6-20261022.tar.gz
   # Hapus tanda # di baris bawah ini jika ingin set tanggal build manual/custom.
   # Jika tetap dikomentari (default), kernel pakai timestamp build asli dari runner.
   # KBUILD_BUILD_TIMESTAMP="Sun June 21 16:02:52 WIB 2026"
@@ -98,25 +98,23 @@ jobs:
             gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
       # ------------------------------------------------------------------
-      # 5. CACHE TOOLCHAIN AOSP CLANG
+      # 5. CACHE TOOLCHAIN ZyC CLANG
       #    (supaya tidak download ulang setiap run)
       # ------------------------------------------------------------------
-      - name: Cache AOSP Clang toolchain
+      - name: Cache ZyC Clang toolchain
         id: cache-toolchain
         uses: actions/cache@v5
         with:
           path: ${{ env.TC_DIR }}
-          key: aosp-clang-${{ env.AOSP_CLANG_TAG }}
+          key: zyc-clang-${{ env.ZYC_CLANG_TAG }}
 
-      - name: Download AOSP Clang toolchain
+      - name: Download ZyC Clang toolchain
         if: steps.cache-toolchain.outputs.cache-hit != 'true'
         run: |
           mkdir -p "$TC_DIR"
-          curl -L --fail \
-            "${AOSP_CLANG_URL}/+archive/refs/heads/main/clang-${AOSP_CLANG_TAG}.tar.gz" \
-            -o /tmp/clang.tar.gz
-          tar -xzf /tmp/clang.tar.gz -C "$TC_DIR"
-          rm -f /tmp/clang.tar.gz
+          curl -L --fail --retry 3 "$ZYC_CLANG_URL" -o /tmp/zyc-clang.tar.gz
+          tar -xzf /tmp/zyc-clang.tar.gz -C "$TC_DIR"
+          rm -f /tmp/zyc-clang.tar.gz
 
       # ------------------------------------------------------------------
       # 6. CACHE CCACHE (mempercepat rebuild berikutnya)
@@ -168,14 +166,15 @@ jobs:
       # ------------------------------------------------------------------
       # 8. BUILD KERNEL (dengan timer)
       # ------------------------------------------------------------------
-      - name: Setup BakaSU
+      - name: Setup xxKernelSU 
         run: |
           cd "$KERNEL_DIR"
-          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash
+          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s sync-up
+          
           curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -s master
           
           echo "CONFIG_NOMOUNT=y" >> $KERNEL_DIR/arch/arm64/configs/vendor/whyred-perf_defconfig
-          
+
           
       - name: Build kernel
         id: build
@@ -319,5 +318,3 @@ jobs:
             echo "| Waktu kompilasi | **${{ steps.build.outputs.duration_min }} menit ${{ steps.build.outputs.duration_sec }} detik** |"
             echo "| Status | ${{ job.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
-
-          
