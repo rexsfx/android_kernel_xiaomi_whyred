@@ -24,10 +24,7 @@ on:
         options:
           - ringkas
           - lengkap
-  push:
-    branches:
-      - android-4.19-stable
-
+          
 env:
   KERNEL_DIR: ${{ github.workspace }}/kernel
   TC_DIR: ${{ github.workspace }}/toolchain/aosp-clang
@@ -171,7 +168,7 @@ jobs:
       # ------------------------------------------------------------------
       # 8. BUILD KERNEL (dengan timer)
       # ------------------------------------------------------------------
-      - name: Setup xxKernelSU 
+      - name: Setup BakaSU
         run: |
           cd "$KERNEL_DIR"
           curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s sync-up
