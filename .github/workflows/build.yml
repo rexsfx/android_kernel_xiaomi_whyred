@@ -29,8 +29,8 @@ env:
   KERNEL_DIR: ${{ github.workspace }}/kernel
   TC_DIR: ${{ github.workspace }}/toolchain/zyc-clang
   OUT_DIR: ${{ github.workspace }}/kernel/out
-  ZYC_CLANG_TAG: 14.0.6-20261022-release
-  ZYC_CLANG_URL: https://github.com/ZyCromerZ/Clang/releases/download/14.0.6-20261022-release/Clang-14.0.6-20261022.tar.gz
+  ZYC_CLANG_TAG: 16.0.6-20260807-release
+  ZYC_CLANG_URL: https://github.com/ZyCromerZ/Clang/releases/download/16.0.6-20260807-release/Clang-16.0.6-20260807.tar.gz
   # Hapus tanda # di baris bawah ini jika ingin set tanggal build manual/custom.
   # Jika tetap dikomentari (default), kernel pakai timestamp build asli dari runner.
   # KBUILD_BUILD_TIMESTAMP="Sun June 21 16:02:52 WIB 2026"
@@ -94,7 +94,7 @@ jobs:
           sudo apt-get install -y \
             bc bison flex libssl-dev libelf-dev \
             build-essential zip curl git python3 \
-            python-is-python3 ccache llvm lld \
+            python-is-python3 ccache llvm lld libxml2 \
             gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
       # ------------------------------------------------------------------
@@ -141,8 +141,17 @@ jobs:
 
       - name: Show toolchain info
         run: |
-          which clang
+          set -e
+          echo "=== ZyC Clang ==="
+          command -v clang
           clang --version
+          echo "=== ZyC LLD ==="
+          command -v ld.lld
+          ld.lld --version
+          echo "=== LLVM binutils ==="
+          for tool in llvm-ar llvm-nm llvm-objcopy llvm-objdump llvm-strip llvm-readelf llvm-size; do
+            command -v "$tool"
+          done
 
       # ------------------------------------------------------------------
       # 7.5. SIAPKAN NAMA ARTIFACT
@@ -318,3 +327,4 @@ jobs:
             echo "| Waktu kompilasi | **${{ steps.build.outputs.duration_min }} menit ${{ steps.build.outputs.duration_sec }} detik** |"
             echo "| Status | ${{ job.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+          
