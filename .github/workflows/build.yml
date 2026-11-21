@@ -24,7 +24,7 @@ on:
         options:
           - ringkas
           - lengkap
-          
+
 env:
   KERNEL_DIR: ${{ github.workspace }}/kernel
   TC_DIR: ${{ github.workspace }}/toolchain/aosp-clang
@@ -168,11 +168,12 @@ jobs:
       # ------------------------------------------------------------------
       # 8. BUILD KERNEL (dengan timer)
       # ------------------------------------------------------------------
-      - name: Setup BakaSU
+      - name: Setup xxKernelSU 
         run: |
           cd "$KERNEL_DIR"
           curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s sync-up
-          curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash - master
+          
+          curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -s master
           
           echo "CONFIG_NOMOUNT=y" >> $KERNEL_DIR/arch/arm64/configs/vendor/whyred-perf_defconfig
 
