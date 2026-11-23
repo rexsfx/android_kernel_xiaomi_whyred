@@ -7,6 +7,15 @@ on:
         description: 'Defconfig yang dipakai'
         required: false
         default: 'vendor/whyred-perf_defconfig'
+        type: choice
+        options:
+          - vendor/whyred-perf_defconfig
+          - vendor/tulip-perf_defconfig
+          - vendor/lavender-perf_defconfig
+      local_version:
+        description: 'Local version (kosong = bawaan defconfig)'
+        required: false
+        default: ''
       lto_mode:
         description: 'Mode LTO (thin/full/none)'
         required: false
@@ -174,11 +183,14 @@ jobs:
           curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s sync-up
           curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -s master
           
-          echo "CONFIG_NOMOUNT=y" >> $KERNEL_DIR/arch/arm64/configs/vendor/whyred-perf_defconfig
-          echo "CONFIG_AUDIT=y" >> $KERNEL_DIR/arch/arm64/configs/vendor/whyred-perf_defconfig
+          DEFCONFIG="${{ github.event.inputs.defconfig || 'vendor/whyred-perf_defconfig' }}"
+          echo "CONFIG_NOMOUNT=y" >> "$KERNEL_DIR/arch/arm64/configs/$DEFCONFIG"
+          echo "CONFIG_AUDIT=y" >> "$KERNEL_DIR/arch/arm64/configs/$DEFCONFIG"
           
       - name: Build kernel
         id: build
+        env:
+          LOCAL_VERSION: ${{ github.event.inputs.local_version }}
         run: |
           START_TIME=$(date +%s)
 
@@ -227,6 +239,11 @@ jobs:
           LOG_FILE="${{ github.workspace }}/build.log"
 
           make O="$OUT_DIR" "${TOOLCHAIN_ARGS[@]}" "$DEFCONFIG" 2>&1 | tee "$LOG_FILE"
+
+          if [ -n "$LOCAL_VERSION" ]; then
+            ./scripts/config --file "$OUT_DIR/.config" --set-str LOCALVERSION "$LOCAL_VERSION"
+          fi
+
           make -j"$(nproc --all)" O="$OUT_DIR" "${TOOLCHAIN_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
           BUILD_EXIT=${PIPESTATUS[0]}
 
@@ -246,6 +263,7 @@ jobs:
           echo "duration_sec=${SEC}" >> "$GITHUB_OUTPUT"
           echo "defconfig=${DEFCONFIG}" >> "$GITHUB_OUTPUT"
           echo "lto_mode=${LTO_MODE}" >> "$GITHUB_OUTPUT"
+          echo "local_version=${LOCAL_VERSION:-bawaan defconfig}" >> "$GITHUB_OUTPUT"
 
           exit "$BUILD_EXIT"
 
@@ -316,6 +334,7 @@ jobs:
             echo "|---|---|"
             echo "| Defconfig | \`${{ steps.build.outputs.defconfig }}\` |"
             echo "| Mode LTO | \`${{ steps.build.outputs.lto_mode }}\` |"
+            echo "| Local version | \`${{ steps.build.outputs.local_version }}\` |"
             echo "| Waktu kompilasi | **${{ steps.build.outputs.duration_min }} menit ${{ steps.build.outputs.duration_sec }} detik** |"
             echo "| Status | ${{ job.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
