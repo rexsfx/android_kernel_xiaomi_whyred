@@ -180,7 +180,7 @@ jobs:
       - name: Setup BakaSU + NoMount
         run: |
           cd "$KERNEL_DIR"
-          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash
+          curl -LSs "https://raw.githubusercontent.com/Baka-SU/BakaSU/main/kernel/setup.sh" | bash -s fix-622-regression
           curl https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh | bash -s master
           
           DEFCONFIG="${{ github.event.inputs.defconfig || 'vendor/whyred-perf_defconfig' }}"
