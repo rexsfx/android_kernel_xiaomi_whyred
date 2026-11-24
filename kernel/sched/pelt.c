@@ -64,6 +64,11 @@ static u64 decay_load(u64 val, u64 n)
 	return val;
 }
 
+u64 cpufreq_pelt_decay(u64 val, u64 delta_ns)
+{
+	return decay_load(val, delta_ns >> 20);
+}
+
 static u32 __accumulate_pelt_segments(u64 periods, u32 d1, u32 d3)
 {
 	u32 c1, c2, c3 = d3; /* y^0 == 1 */
