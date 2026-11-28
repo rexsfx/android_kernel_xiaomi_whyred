@@ -93,6 +93,8 @@
 #define AS_FLAGS_SUS_KSTAT 35
 #define AS_FLAGS_OPEN_REDIRECT 36
 #define AS_FLAGS_SUS_MAP 39
+/* sdcardfs: set on the lower inode of a sus path that was added through sdcardfs */
+#define AS_FLAGS_SUS_PATH_SDCARDFS 41
 
 #define ND_STATE_LOOKUP_LAST 32
 #define ND_STATE_OPEN_LAST 64
